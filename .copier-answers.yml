@@ -1,0 +1,10 @@
+# Do not edit - changes here will be overwritten by Copier
+_commit: v0.5.0
+_src_path: gh:fractal-analytics-platform/fractal-tasks-template
+author_email: nicole.repina@fmi.ch
+author_name: Nicole Repina
+package_name: fractal_nnunet
+project_name: fractal-nnunet
+project_short_description: Semantic segmentation with nnUnet.
+project_url: ''
+
