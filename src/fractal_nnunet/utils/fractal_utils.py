@@ -1,3 +1,9 @@
+# Copyright 2025 (C) Friedrich Miescher Institute for Biomedical Research
+#
+# Original authors:
+# Nicole Repina <nicole.repina@fmi.ch>
+#
+
 import logging
 
 from fractal_tasks_core.channels import (ChannelInputModel,

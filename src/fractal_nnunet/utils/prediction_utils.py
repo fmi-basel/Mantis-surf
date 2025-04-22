@@ -1,3 +1,9 @@
+# Copyright 2025 (C) Friedrich Miescher Institute for Biomedical Research
+#
+# Original authors:
+# Nicole Repina <nicole.repina@fmi.ch>
+#
+
 import numpy as np
 from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
 import torch
@@ -13,7 +19,7 @@ def transpose_3dimage_for_nnunet(
         img_transposed = img.transpose(2, 1, 0)  # Transposes the array from (z, y, x) to (x, y, z)
         if add_channel_axis:
             img_transposed = img_transposed[np.newaxis, ...]  # Add channel dimension to make it (1, X, Y, Z)
-    elif img.ndim ==4 and img.shape[0] == 1:
+    elif img.ndim == 4 and img.shape[0] == 1:
         # input image already has channel axis
         img_transposed = img.transpose(0, 3, 2, 1)
     else:
