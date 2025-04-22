@@ -21,7 +21,6 @@ from pydantic import validate_call
 
 import fractal_tasks_core
 from fractal_tasks_core.labels import prepare_label_group
-from fractal_tasks_core.masked_loading import masked_loading_wrapper
 from fractal_tasks_core.ngff import load_NgffImageMeta
 from fractal_tasks_core.pyramids import build_pyramid
 from fractal_tasks_core.roi import (
@@ -42,6 +41,7 @@ from fractal_tasks_core.utils import rescale_datasets
 
 from fractal_nnunet.utils.fractal_utils import UnetChannelInputModel
 from .utils.prediction_utils import init_predictor, predict_nnunet
+from .utils.masked_loading import masked_loading_wrapper
 
 logger = logging.getLogger(__name__)
 
@@ -332,6 +332,7 @@ def nnunet_segmentation(
                 current_label_path=f"{zarr_url}/labels/{output_label_name}/0",
                 ROI_table_path=ROI_table_path,
                 ROI_positional_index=i_ROI,
+                level=level,
             )
 
         # Call segment_ROI through the masked-loading wrapper, which includes

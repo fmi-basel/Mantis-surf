@@ -35,6 +35,7 @@ def _preprocess_input(
     current_label_path: str,
     ROI_table_path: str,
     ROI_positional_index: int,
+    level: int = 0,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Preprocess a four-dimensional cellpose input.
@@ -115,7 +116,7 @@ def _preprocess_input(
 
     # Load masking-label array (lazily)
     masking_label_path = str(
-        Path(ROI_table_path).parent / label_relative_path / "0"
+        Path(ROI_table_path).parent / label_relative_path / str(level)
     )
     logger.info(f"{masking_label_path=}")
     masking_label_array = da.from_zarr(masking_label_path)
