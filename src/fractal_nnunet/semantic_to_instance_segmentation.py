@@ -6,6 +6,7 @@
 """Convert nnUnet semantic segmentation to instance segmentation."""
 
 import logging
+from typing import Optional
 
 import anndata as ad
 import dask.array as da
@@ -47,15 +48,15 @@ def semantic_to_instance_segmentation(
     boundary_label_name: str = "nnunet_boundary",
     semantic_label_name: str = "nnunet_semantic",
     masking_ROI_table: str = "org_ROI_table",
-    output_ROI_table: str | None = None,
-    output_label_name: str | None = None,
+    output_ROI_table: Optional[str] = None,
+    output_label_name: Optional[str] = None,
     # nnUnet-related arguments
     select_semantic_class: int = 1,
-    gaussian_sigma: int | float = 2,
+    gaussian_sigma: float = 2.0,
     watershed_threshold: float = 0.05,
     watershed_sigma_seeds: float = 1.0,
     watershed_sigma_weights: float = 2.0,
-    watershed_alpha: float = 1,
+    watershed_alpha: float = 1.0,
     watershed_min_size: int = 100,
     gasp_beta: float = 0.5,
     combine_boundary_and_semantic_edges: bool = True,

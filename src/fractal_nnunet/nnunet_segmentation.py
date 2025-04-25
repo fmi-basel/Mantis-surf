@@ -7,6 +7,7 @@
 
 import logging
 import os
+from typing import Optional
 
 import anndata as ad
 import dask.array as da
@@ -48,8 +49,8 @@ def nnunet_segmentation(
     level: int,
     channel: UnetChannelInputModel,
     input_ROI_table: str = "FOV_ROI_table",
-    output_ROI_table: str | None = None,
-    output_label_name: str | None = None,
+    output_ROI_table: Optional[str] = None,
+    output_label_name: Optional[str] = None,
     # nnUnet-related arguments
     model_path: str,
     folds: tuple = (0, 1, 2, 3, 4),
