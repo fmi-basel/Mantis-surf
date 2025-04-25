@@ -3,42 +3,36 @@
 # Original authors:
 # Nicole Repina <nicole.repina@fmi.ch>
 #
-"""
-Image segmentation with nnUnet.
-"""
+"""Image segmentation with nnUnet."""
+
 import logging
 import os
-from typing import Optional
 
 import anndata as ad
 import dask.array as da
+import fractal_tasks_core
 import numpy as np
 import zarr
-from pydantic import validate_call
-
-import fractal_tasks_core
 from fractal_tasks_core.labels import prepare_label_group
 from fractal_tasks_core.ngff import load_NgffImageMeta
 from fractal_tasks_core.pyramids import build_pyramid
 from fractal_tasks_core.roi import (
     array_to_bounding_box_table,
-)
-from fractal_tasks_core.roi import check_valid_ROI_indices
-from fractal_tasks_core.roi import (
+    check_valid_ROI_indices,
     convert_ROI_table_to_indices,
-)
-from fractal_tasks_core.roi import create_roi_table_from_df_list
-from fractal_tasks_core.roi import (
+    create_roi_table_from_df_list,
     find_overlaps_in_ROI_indices,
+    is_ROI_table_valid,
+    load_region,
 )
-from fractal_tasks_core.roi import is_ROI_table_valid
-from fractal_tasks_core.roi import load_region
 from fractal_tasks_core.tables import write_table
 from fractal_tasks_core.utils import rescale_datasets
+from pydantic import validate_call
 
 from fractal_nnunet.utils.fractal_utils import UnetChannelInputModel
-from .utils.prediction_utils import init_predictor, predict_nnunet
+
 from .utils.masked_loading import masked_loading_wrapper
+from .utils.prediction_utils import init_predictor, log_transform_array, predict_nnunet
 
 logger = logging.getLogger(__name__)
 
@@ -54,16 +48,16 @@ def nnunet_segmentation(
     level: int,
     channel: UnetChannelInputModel,
     input_ROI_table: str = "FOV_ROI_table",
-    output_ROI_table: Optional[str] = None,
-    output_label_name: Optional[str] = None,
+    output_ROI_table: str | None = None,
+    output_label_name: str | None = None,
     # nnUnet-related arguments
     model_path: str,
-    folds: tuple = (0,1,2,3,4),
+    folds: tuple = (0, 1, 2, 3, 4),
+    log_transform_prior_to_prediction: bool = False,
     use_masks: bool = True,
     overwrite: bool = True,
 ) -> None:
-    """
-    Run cellpose segmentation on the ROIs of a single OME-Zarr image.
+    """Run nnUnet segmentation on the ROIs of a single OME-Zarr image.
 
     Args:
         zarr_url: Path or url to the individual OME-Zarr image to be processed.
@@ -82,10 +76,15 @@ def nnunet_segmentation(
             which will contain the bounding boxes of the newly segmented
             labels. ROI tables should have `ROI` in their name.
         output_label_name: Name of the output label image (e.g. `"organoids"`).
-        model_path: Path to nnUnet model folder, e.g. ../nnUNetTrainer__nnUNetPlans__3d_fullres
-        folds: Tuple of folds to use for cross-validation ensemble prediction. Available folds vary based on training
-            settings. E.g. (0,) uses only fold 0 for prediction, whereas (0,1,2,3,4) uses folds 0-4 and
-            averages their output.
+        model_path: Path to nnUnet model folder,
+            e.g. ../nnUNetTrainer__nnUNetPlans__3d_fullres
+        folds: Tuple of folds to use for cross-validation ensemble prediction.
+            Available folds vary based on training
+            settings. E.g. (0,) uses only fold 0 for prediction, whereas (0,1,2,3,4)
+            uses folds 0-4 and averages their output.
+        log_transform_prior_to_prediction: Boolean, if True the input numpy array is
+            log-transformed (natural log, e)
+            before being passed to nnUnet for prediction.
         use_masks: If `True`, try to use masked loading and fall back to
             `use_masks=False` if the ROI table is not suitable. Masked
             loading is relevant when only a subset of the bounding box should
@@ -106,18 +105,13 @@ def nnunet_segmentation(
     actual_res_pxl_sizes_zyx = ngff_image_meta.get_pixel_sizes_zyx(level=level)
     logger.info(f"NGFF image has {num_levels=}")
     logger.info(f"NGFF image has {coarsening_xy=}")
+    logger.info(f"NGFF image has full-res pixel sizes {full_res_pxl_sizes_zyx}")
     logger.info(
-        f"NGFF image has full-res pixel sizes {full_res_pxl_sizes_zyx}"
-    )
-    logger.info(
-        f"NGFF image has level-{level} pixel sizes "
-        f"{actual_res_pxl_sizes_zyx}"
+        f"NGFF image has level-{level} pixel sizes " f"{actual_res_pxl_sizes_zyx}"
     )
 
     # z,y,x um/pix spacing stored in image_properties dictionary for nnUnet
-    image_properties = {
-        'spacing': actual_res_pxl_sizes_zyx
-    }
+    image_properties = {"spacing": actual_res_pxl_sizes_zyx}
 
     # Find channel index
     omero_channel = channel.get_omero_channel(zarr_url)
@@ -150,9 +144,7 @@ def nnunet_segmentation(
     ROI_table = ad.read_zarr(ROI_table_path)
 
     # Perform some checks on the ROI table
-    valid_ROI_table = is_ROI_table_valid(
-        table_path=ROI_table_path, use_masks=use_masks
-    )
+    valid_ROI_table = is_ROI_table_valid(table_path=ROI_table_path, use_masks=use_masks)
     if use_masks and not valid_ROI_table:
         logger.info(
             f"ROI table at {ROI_table_path} cannot be used for masked "
@@ -227,9 +219,7 @@ def nnunet_segmentation(
         logger=logger,
     )
 
-    logger.info(
-        f"Helper function `prepare_label_group` returned {label_group=}"
-    )
+    logger.info(f"Helper function `prepare_label_group` returned {label_group=}")
     logger.info(f"Output label path: {zarr_url}/labels/{output_label_name}/0")
     store = zarr.storage.FSStore(f"{zarr_url}/labels/{output_label_name}/0")
     label_dtype = np.uint32
@@ -252,8 +242,7 @@ def nnunet_segmentation(
     )
 
     logger.info(
-        f"mask will have shape {data_zyx.shape} "
-        f"and chunks {data_zyx.chunks}"
+        f"mask will have shape {data_zyx.shape} " f"and chunks {data_zyx.chunks}"
     )
 
     # Initialize nnUnet
@@ -292,24 +281,27 @@ def nnunet_segmentation(
             axis=0,
         )
 
+        if log_transform_prior_to_prediction:
+            img_np = log_transform_array(img_np)
+
         # Prepare keyword arguments for segment_ROI function
-        kwargs_segment_roi = dict(
-            predictor=predictor,
-            image_properties=image_properties,
-            save_or_return_probabilities=False,
-            label_dtype=label_dtype,
-        )
+        kwargs_segment_roi = {
+            "predictor": predictor,
+            "image_properties": image_properties,
+            "save_or_return_probabilities": False,
+            "label_dtype": label_dtype,
+        }
 
         # Prepare keyword arguments for preprocessing function
         preprocessing_kwargs = {}
         if use_masks:
-            preprocessing_kwargs = dict(
-                region=region,
-                current_label_path=f"{zarr_url}/labels/{output_label_name}/0",
-                ROI_table_path=ROI_table_path,
-                ROI_positional_index=i_ROI,
-                level=level,
-            )
+            preprocessing_kwargs = {
+                "region": region,
+                "current_label_path": f"{zarr_url}/labels/{output_label_name}/0",
+                "ROI_table_path": ROI_table_path,
+                "ROI_positional_index": i_ROI,
+                "level": level,
+            }
 
         # Call segment_ROI through the masked-loading wrapper, which includes
         # pre/post-processing functions if needed
@@ -338,8 +330,7 @@ def nnunet_segmentation(
         )
 
     logger.info(
-        f"End cellpose_segmentation task for {zarr_url}, "
-        "now building pyramids."
+        f"End cellpose_segmentation task for {zarr_url}, " "now building pyramids."
     )
 
     # Starting from on-disk highest-resolution data, build and write to disk a
