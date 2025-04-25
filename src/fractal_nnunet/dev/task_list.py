@@ -2,17 +2,29 @@
 
 from fractal_task_tools.task_models import ParallelTask
 
-AUTHORS = "Fractal Core Team"
+AUTHORS = "Nicole Repina"
 DOCS_LINK = None
 INPUT_MODELS = []
 
 TASK_LIST = [
     ParallelTask(
-        name="Thresholding Label Task",
-        executable="thresholding_label_task.py",
-        meta={"cpus_per_task": 1, "mem": 4000},
+        name="nnUnet Segmentation",
+        executable="nnunet_segmentation.py",
+        meta={"cpus_per_task": 1, "mem": 8000},
         category="Segmentation",
-        tags=["Instance Segmentation", "Classical segmentation"],
-        docs_info="file:docs_info/thresholding_task.md",
+        tags=[
+            "Semantic Segmentation",
+        ],
+        docs_info="file:docs_info/nnunet_segmentation.md",
+    ),
+    ParallelTask(
+        name="nnUnet Semantic to Instance Segmentation ",
+        executable="semantic_to_instance_segmentation.py",
+        meta={"cpus_per_task": 1, "mem": 8000},
+        category="Segmentation",
+        tags=[
+            "Instance Segmentation",
+        ],
+        docs_info="file:docs_info/semantic_to_instance_segmentation.md",
     ),
 ]
