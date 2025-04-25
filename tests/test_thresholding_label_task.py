@@ -20,8 +20,4 @@ def test_data_dir(tmp_path: Path) -> str:
 
 
 def test_thresholding_label_task(test_data_dir):
-    thresholding_label_task(
-        zarr_url=test_data_dir,
-        threshold=180,
-        channel="DAPI"
-    )
+    thresholding_label_task(zarr_url=test_data_dir, threshold=180, channel="DAPI")

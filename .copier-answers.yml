@@ -7,4 +7,3 @@ package_name: fractal_nnunet
 project_name: fractal-nnunet
 project_short_description: Semantic segmentation with nnUnet.
 project_url: ''
-

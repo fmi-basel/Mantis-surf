@@ -1,8 +1,6 @@
 """Contains the list of tasks available to fractal."""
 
-from fractal_task_tools.task_models import (
-    ParallelTask,
-)
+from fractal_task_tools.task_models import ParallelTask
 
 AUTHORS = "Fractal Core Team"
 DOCS_LINK = None

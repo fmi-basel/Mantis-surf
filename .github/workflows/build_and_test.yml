@@ -56,7 +56,7 @@ jobs:
 
       - name: Test core library with pytest
         run: python -m pytest tests
-  
+
   deploy:
     name: Deploy
     needs: tests

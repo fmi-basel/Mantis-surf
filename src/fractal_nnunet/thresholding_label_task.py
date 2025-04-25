@@ -58,7 +58,7 @@ def thresholding_label_task(
         threshold=threshold,
         min_size=min_size,
     )
-    
+
     # Set label name
     if not label_name:
         label_name = f"{channel}_thresholded"
@@ -87,7 +87,7 @@ def process_img(int_img: np.ndarray, threshold: int, min_size: int = 50) -> np.n
     """
     # Thresholding the image
     int_img = np.squeeze(int_img)
-    
+
     binary_img = int_img >= threshold
 
     # Removing small objects
