@@ -8,22 +8,18 @@
 # <exact-lab.it> under contract with Liberali Lab from the Friedrich Miescher
 # Institute for Biomedical Research and Pelkmans Lab from the University of
 # Zurich.
-"""
-Functions to use masked loading of ROIs before/after processing.
-"""
+"""Functions to use masked loading of ROIs before/after processing."""
+
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
-from typing import Optional
 
 import anndata as ad
 import dask.array as da
 import numpy as np
 import zarr
-
 from fractal_tasks_core.tables.v1 import MaskingROITableAttrs
-from fractal_tasks_core.upscale_array import convert_region_to_low_res
-from fractal_tasks_core.upscale_array import upscale_array
+from fractal_tasks_core.upscale_array import convert_region_to_low_res, upscale_array
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +33,7 @@ def _preprocess_input(
     ROI_positional_index: int,
     level: int = 0,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Preprocess a four-dimensional cellpose input.
+    """Preprocess a four-dimensional cellpose input.
 
     This involves :
 
@@ -80,11 +75,12 @@ def _preprocess_input(
             `label_value`.
         ROI_positional_index: Index of the current ROI, which is used to
             extract `label_value` from `ROI_table_obs`.
+        level: Level of image_array to be processed, to load matching masking level.
+
     Returns:
         A tuple with three arrays: the preprocessed image array, the background
             mask, the current label.
     """
-
     logger.info(f"[_preprocess_input] {image_array.shape=}")
     logger.info(f"[_preprocess_input] {region=}")
 
@@ -110,9 +106,7 @@ def _preprocess_input(
             'In _preprocess_input, "{column_name}" '
             f" missing in {ROI_table.obs.columns=}"
         )
-    label_value = int(
-        float(ROI_table.obs[column_name].iloc[ROI_positional_index])
-    )
+    label_value = int(float(ROI_table.obs[column_name].iloc[ROI_positional_index]))
 
     # Load masking-label array (lazily)
     masking_label_path = str(
@@ -121,15 +115,13 @@ def _preprocess_input(
     logger.info(f"{masking_label_path=}")
     masking_label_array = da.from_zarr(masking_label_path)
     logger.info(
-        f"[_preprocess_input] {masking_label_path=}, "
-        f"{masking_label_array.shape=}"
+        f"[_preprocess_input] {masking_label_path=}, " f"{masking_label_array.shape=}"
     )
 
     # Load current-label array (lazily)
     current_label_array = da.from_zarr(current_label_path)
     logger.info(
-        f"[_preprocess_input] {current_label_path=}, "
-        f"{current_label_array.shape=}"
+        f"[_preprocess_input] {current_label_path=}, " f"{current_label_array.shape=}"
     )
 
     # Load ROI data for current label array
@@ -168,9 +160,7 @@ def _preprocess_input(
     # Compute background mask
     background_3D = masking_label_region != label_value
     if (masking_label_region == label_value).sum() == 0:
-        raise ValueError(
-            f"Label {label_value} is not present in the extracted ROI"
-        )
+        raise ValueError(f"Label {label_value} is not present in the extracted ROI")
 
     # Set image background to zero
     n_channels = image_array.shape[0]
@@ -186,8 +176,7 @@ def _postprocess_output(
     original_array: np.ndarray,
     background: np.ndarray,
 ) -> np.ndarray:
-    """
-    Postprocess cellpose output, mainly to restore its original background.
+    """Postprocess cellpose output, mainly to restore its original background.
 
     **NOTE**: The pre/post-processing functions and the
     masked_loading_wrapper are currently meant to work as part of the
@@ -214,12 +203,11 @@ def masked_loading_wrapper(
     *,
     function: Callable,
     image_array: np.ndarray,
-    kwargs: Optional[dict] = None,
+    kwargs: dict | None = None,
     use_masks: bool,
-    preprocessing_kwargs: Optional[dict] = None,
+    preprocessing_kwargs: dict | None = None,
 ):
-    """
-    Wrap a function with some pre/post-processing functions
+    """Wrap a function with some pre/post-processing functions
 
     Args:
         function: The callable function to be wrapped.
@@ -241,7 +229,17 @@ def masked_loading_wrapper(
         ) = _preprocess_input(image_array, **preprocessing_kwargs)
     # Run function
     kwargs = kwargs or {}
-    new_label_img = function(image_array, **kwargs)
+    result = function(image_array, **kwargs)
+
+    unpack_result = True
+
+    try:
+        new_label_img, x = result
+    except ValueError:
+        new_label_img = result
+        x = None
+        unpack_result = False
+
     # Optional postprocessing
     if use_masks:
         new_label_img = _postprocess_output(
@@ -249,5 +247,7 @@ def masked_loading_wrapper(
             original_array=current_label_region,
             background=background_3D,
         )
-    return new_label_img
-
+    if unpack_result:
+        return new_label_img, x
+    else:
+        return new_label_img
