@@ -7,7 +7,7 @@
 
 import logging
 import os
-from typing import Optional
+from typing import Optional, Sequence
 
 import anndata as ad
 import dask.array as da
@@ -53,7 +53,7 @@ def nnunet_segmentation(
     output_label_name: Optional[str] = None,
     # nnUnet-related arguments
     model_path: str,
-    folds: tuple = (0, 1, 2, 3, 4),
+    folds: Optional[Sequence[int]] = None,
     log_transform_prior_to_prediction: bool = False,
     use_masks: bool = True,
     overwrite: bool = True,
@@ -79,10 +79,10 @@ def nnunet_segmentation(
         output_label_name: Name of the output label image (e.g. `"organoids"`).
         model_path: Path to nnUnet model folder,
             e.g. ../nnUNetTrainer__nnUNetPlans__3d_fullres
-        folds: Tuple of folds to use for cross-validation ensemble prediction.
+        folds: List of folds (int) to use for cross-validation ensemble prediction.
             Available folds vary based on training
             settings. E.g. (0,) uses only fold 0 for prediction, whereas (0,1,2,3,4)
-            uses folds 0-4 and averages their output.
+            uses folds 0-4 and averages their output. Default is (0,1,2,3,4)
         log_transform_prior_to_prediction: Boolean, if True the input numpy array is
             log-transformed (natural log, e)
             before being passed to nnUnet for prediction.
@@ -110,6 +110,11 @@ def nnunet_segmentation(
     logger.info(
         f"NGFF image has level-{level} pixel sizes " f"{actual_res_pxl_sizes_zyx}"
     )
+
+    if folds is None:
+        folds = (0, 1, 2, 3, 4)
+    else:
+        folds = tuple(folds)
 
     # z,y,x um/pix spacing stored in image_properties dictionary for nnUnet
     image_properties = {"spacing": actual_res_pxl_sizes_zyx}

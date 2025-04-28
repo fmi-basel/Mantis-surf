@@ -7,7 +7,7 @@
       "tags": [
         "Semantic Segmentation"
       ],
-      "docs_info": "### Purpose\n- Run 3D nnUnet V2 semantic segmentation on channel images given a user-trained model. \n\n### Outputs\n- Semantic segmentation label image and corresponding ROI table. \n\n### Limitations\n- Currently only supports 3D segmentation, not 2D. \n- Follows Cellpose task structure and dependent on fractal tasks core masking.\n",
+      "docs_info": "### Purpose\n- Run 3D nnUnet V2 semantic segmentation on channel images given a user-trained model.\n\n### Outputs\n- Semantic segmentation label image and corresponding ROI table.\n\n### Limitations\n- Currently only supports 3D segmentation, not 2D.\n- Follows Cellpose task structure and dependent on fractal tasks core masking.\n",
       "executable_parallel": "nnunet_segmentation.py",
       "meta_parallel": {
         "cpus_per_task": 1,
@@ -70,17 +70,12 @@
             "description": "Path to nnUnet model folder, e.g. ../nnUNetTrainer__nnUNetPlans__3d_fullres"
           },
           "folds": {
-            "default": [
-              0,
-              1,
-              2,
-              3,
-              4
-            ],
-            "items": {},
+            "items": {
+              "type": "integer"
+            },
             "title": "Folds",
             "type": "array",
-            "description": "Tuple of folds to use for cross-validation ensemble prediction. Available folds vary based on training settings. E.g. (0,) uses only fold 0 for prediction, whereas (0,1,2,3,4) uses folds 0-4 and averages their output."
+            "description": "List of folds (int) to use for cross-validation ensemble prediction. Available folds vary based on training settings. E.g. (0,) uses only fold 0 for prediction, whereas (0,1,2,3,4) uses folds 0-4 and averages their output. Default is (0,1,2,3,4)"
           },
           "log_transform_prior_to_prediction": {
             "default": false,
@@ -117,7 +112,7 @@
       "tags": [
         "Instance Segmentation"
       ],
-      "docs_info": "### Purpose\n- Convert semantic segmentation output of nnUnet to instance segmentation. \n- Select which semantic class is converted to numerically increasing instance labels. \n- Based on distance watershed and GASP algorithms similar to PlantSeg implementation. \n\n### Outputs\n- Instance segmentation label image (numerically increasing order starting from 1) and corresponding ROI table. \n\n### Limitations\n- Currently only supports 3D segmentation, not 2D. \n- Follows Cellpose task structure and dependent on fractal tasks core masking.\n",
+      "docs_info": "### Purpose\n- Convert semantic segmentation output of nnUnet to instance segmentation.\n- Select which semantic class is converted to numerically increasing instance labels.\n- Based on distance watershed and GASP algorithms similar to PlantSeg implementation.\n\n### Outputs\n- Instance segmentation label image (numerically increasing order starting from 1) and corresponding ROI table.\n\n### Limitations\n- Currently only supports 3D segmentation, not 2D.\n- Follows Cellpose task structure and dependent on fractal tasks core masking.\n",
       "executable_parallel": "semantic_to_instance_segmentation.py",
       "meta_parallel": {
         "cpus_per_task": 1,
