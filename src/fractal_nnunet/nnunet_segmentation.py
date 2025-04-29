@@ -31,9 +31,12 @@ from fractal_tasks_core.utils import rescale_datasets
 from pydantic import validate_call
 
 from fractal_nnunet.utils.fractal_utils import UnetChannelInputModel
-
-from .utils.masked_loading import masked_loading_wrapper
-from .utils.prediction_utils import init_predictor, log_transform_array, predict_nnunet
+from fractal_nnunet.utils.masked_loading import masked_loading_wrapper
+from fractal_nnunet.utils.prediction_utils import (
+    init_predictor,
+    log_transform_array,
+    predict_nnunet,
+)
 
 logger = logging.getLogger(__name__)
 

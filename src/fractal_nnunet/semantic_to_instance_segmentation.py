@@ -30,8 +30,7 @@ from fractal_tasks_core.utils import rescale_datasets
 from pydantic import validate_call
 
 from fractal_nnunet.utils.instance_utils import run_semantic_to_instance_segmentation
-
-from .utils.masked_loading import masked_loading_wrapper
+from fractal_nnunet.utils.masked_loading import masked_loading_wrapper
 
 logger = logging.getLogger(__name__)
 
