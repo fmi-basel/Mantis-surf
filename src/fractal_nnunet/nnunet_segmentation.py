@@ -282,8 +282,6 @@ def nnunet_segmentation(
     logger.info(f"Now starting loop over {num_ROIs} ROIs")
 
     for i_ROI, indices in enumerate(list_indices):
-        if i_ROI + 1 != 6:
-            continue
         # Define region
         s_z, e_z, s_y, e_y, s_x, e_x = indices[:]
         region = (
