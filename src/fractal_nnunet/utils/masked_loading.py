@@ -81,8 +81,9 @@ def _preprocess_input(
         A tuple with three arrays: the preprocessed image array, the background
             mask, the current label.
     """
-    logger.info(f"[_preprocess_input] {image_array.shape=}")
-    logger.info(f"[_preprocess_input] {region=}")
+    # logger.info(f"[_preprocess_input] {image_array.shape=}")
+    # logger.info(f"[_preprocess_input] {region=}")
+    # TODO: instead add shape logging output after masking
 
     # Check that image data are 4D (CZYX) - FIXME issue 340
     if not image_array.ndim == 4:
@@ -94,8 +95,8 @@ def _preprocess_input(
     # Load the ROI table and its metadata attributes
     ROI_table = ad.read_zarr(ROI_table_path)
     attrs = zarr.group(ROI_table_path).attrs
-    logger.info(f"[_preprocess_input] {ROI_table_path=}")
-    logger.info(f"[_preprocess_input] {attrs.asdict()=}")
+    # logger.info(f"[_preprocess_input] {ROI_table_path=}")
+    # logger.info(f"[_preprocess_input] {attrs.asdict()=}")
     MaskingROITableAttrs(**attrs.asdict())
     label_relative_path = attrs["region"]["path"]
     column_name = attrs["instance_key"]
@@ -116,17 +117,17 @@ def _preprocess_input(
     masking_label_path = str(
         Path(ROI_table_path).parent / label_relative_path / str(level)
     )
-    logger.info(f"{masking_label_path=}")
+    # logger.info(f"{masking_label_path=}")
     masking_label_array = da.from_zarr(masking_label_path)
-    logger.info(
-        f"[_preprocess_input] {masking_label_path=}, " f"{masking_label_array.shape=}"
-    )
+    # logger.info(
+    #     f"[_preprocess_input] {masking_label_path=}, " f"{masking_label_array.shape=}"
+    # )
 
     # Load current-label array (lazily)
     current_label_array = da.from_zarr(current_label_path)
-    logger.info(
-        f"[_preprocess_input] {current_label_path=}, " f"{current_label_array.shape=}"
-    )
+    # logger.info(
+    #     f"[_preprocess_input] {current_label_path=}, " f"{current_label_array.shape=}"
+    # )
 
     # Load ROI data for current label array
     current_label_region = current_label_array[region].compute()
@@ -232,9 +233,14 @@ def masked_loading_wrapper(
             current_label_region,
         ) = _preprocess_input(image_array, **preprocessing_kwargs)
     # Run function
+    logger.info(
+        f"[masked_loading_wrapper] Loaded masked region of shape {image_array.shape}. "
+        f"Starting wrapped function run."
+    )
     kwargs = kwargs or {}
     result = function(image_array, **kwargs)
 
+    logger.info("[masked_loading_wrapper] Starting postprocessing.")
     unpack_result = True
 
     try:
