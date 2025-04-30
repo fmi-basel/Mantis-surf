@@ -16,10 +16,12 @@ def log_transform_array(
     img: np.ndarray,
 ) -> np.ndarray:
     """Perform log transform of input image. Return same dtype as input array."""
-    dtype = img.dtype
+    img_to_transform = img.copy()
+    dtype = img_to_transform.dtype
     dtype_max = np.iinfo(dtype).max  # e.g. 65535 for uint16
-
-    img_log = np.log(img + 1)  # returns float numpy array
+    # add 1 to all values below max for dtype to avoid divide by 0 error
+    img_to_transform[img_to_transform < dtype_max] += 1
+    img_log = np.log(img_to_transform)  # returns float numpy array
 
     # rescale to input range and dtype
     img_log = dtype_max * img_log / (np.log(dtype_max + 1))
