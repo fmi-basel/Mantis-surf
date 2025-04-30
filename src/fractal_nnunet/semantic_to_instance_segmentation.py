@@ -6,6 +6,7 @@
 """Convert nnUnet semantic segmentation to instance segmentation."""
 
 import logging
+import os
 from typing import Optional
 
 import anndata as ad
@@ -140,7 +141,13 @@ def semantic_to_instance_segmentation(
 
     # Read ROI table
     ROI_table_path = f"{zarr_url}/tables/{masking_ROI_table}"
-    ROI_table = ad.read_zarr(ROI_table_path)
+
+    if os.path.exists(ROI_table_path):
+        ROI_table = ad.read_zarr(ROI_table_path)
+    else:
+        raise ValueError(
+            f"Check task input for input_ROI_table. ROI table does not exist in {ROI_table_path=}."
+        )
 
     # Perform some checks on the ROI table
     valid_ROI_table = is_ROI_table_valid(table_path=ROI_table_path, use_masks=use_masks)

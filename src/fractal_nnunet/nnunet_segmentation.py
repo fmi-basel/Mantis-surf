@@ -150,7 +150,13 @@ def nnunet_segmentation(
 
     # Read ROI table
     ROI_table_path = f"{zarr_url}/tables/{input_ROI_table}"
-    ROI_table = ad.read_zarr(ROI_table_path)
+
+    if os.path.exists(ROI_table_path):
+        ROI_table = ad.read_zarr(ROI_table_path)
+    else:
+        raise ValueError(
+            f"Check task input for input_ROI_table. ROI table does not exist in {ROI_table_path=}."
+        )
 
     # Perform some checks on the ROI table
     valid_ROI_table = is_ROI_table_valid(table_path=ROI_table_path, use_masks=use_masks)
@@ -276,6 +282,8 @@ def nnunet_segmentation(
     logger.info(f"Now starting loop over {num_ROIs} ROIs")
 
     for i_ROI, indices in enumerate(list_indices):
+        if i_ROI + 1 != 6:
+            continue
         # Define region
         s_z, e_z, s_y, e_y, s_x, e_x = indices[:]
         region = (
