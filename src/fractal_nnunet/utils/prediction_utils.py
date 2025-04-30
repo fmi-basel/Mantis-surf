@@ -5,11 +5,16 @@
 #
 """Helper functions for prediction with nnUnet."""
 
+import logging
 from typing import Literal
 
 import numpy as np
 import torch
 from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
+
+from fractal_nnunet.utils.logging_utils import redirect_print_to_logger
+
+logger = logging.getLogger(__name__)
 
 
 def log_transform_array(
@@ -122,11 +127,12 @@ def predict_nnunet(
     )
     image_properties_transposed = transpose_spacing_for_nnunet(image_properties)
 
-    ret = predictor.predict_single_npy_array(
-        input_image=img_transposed,
-        image_properties=image_properties_transposed,
-        save_or_return_probabilities=save_or_return_probabilities,
-    )
+    with redirect_print_to_logger(logger):
+        ret = predictor.predict_single_npy_array(
+            input_image=img_transposed,
+            image_properties=image_properties_transposed,
+            save_or_return_probabilities=save_or_return_probabilities,
+        )
     if save_or_return_probabilities:
         return (
             transpose_3dimage_for_nnunet(ret[0], img_dtype=label_dtype),
