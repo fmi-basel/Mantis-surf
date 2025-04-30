@@ -134,7 +134,8 @@ def relabel_by_class_instances(
     for label, semantic_id in reassign_labels.items():
         gasp_result_relabeled[gasp_result_relabeled == label] = semantic_id
 
-    return gasp_result_relabeled, i
+    instance_count = i - starting_label_id
+    return gasp_result_relabeled, instance_count
 
 
 def boundaries_to_gasp(

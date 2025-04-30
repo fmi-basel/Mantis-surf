@@ -31,7 +31,10 @@ from fractal_tasks_core.utils import rescale_datasets
 from pydantic import validate_call
 
 from fractal_nnunet.utils.instance_utils import run_semantic_to_instance_segmentation
-from fractal_nnunet.utils.masked_loading import masked_loading_wrapper
+from fractal_nnunet.utils.masked_loading import (
+    _preprocess_input,
+    masked_loading_wrapper,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -287,9 +290,27 @@ def semantic_to_instance_segmentation(
             axis=0,
         )
 
+        # Prepare keyword arguments for preprocessing function
+        preprocessing_kwargs = {}
+        if use_masks:
+            preprocessing_kwargs = {
+                "region": region,
+                "current_label_path": f"{zarr_url}/labels/{output_label_name}/0",
+                "ROI_table_path": ROI_table_path,
+                "ROI_positional_index": i_ROI,
+                "level": level,
+            }
+
+        # Mask semantic segmentation as well
+        (
+            semantic_img_np_masked,
+            _,
+            _,
+        ) = _preprocess_input(semantic_img_np, **preprocessing_kwargs)
+
         # Prepare keyword arguments for segment_ROI function
         kwargs_segment_roi = {
-            "semantic_seg": semantic_img_np,
+            "semantic_seg": semantic_img_np_masked,
             "select_semantic_class": select_semantic_class,
             "pixmeta": actual_res_pxl_sizes_zyx,
             "starting_label_id": starting_label_id,
@@ -302,18 +323,6 @@ def semantic_to_instance_segmentation(
             "gasp_beta": gasp_beta,
             "combine_boundary_and_semantic_edges": combine_boundary_and_semantic_edges,
         }
-
-        # Prepare keyword arguments for preprocessing function
-        preprocessing_kwargs = {}
-        if use_masks:
-            preprocessing_kwargs = {
-                "region": region,
-                "current_label_path": f"{zarr_url}/labels/{output_label_name}/0",
-                "ROI_table_path": ROI_table_path,
-                "ROI_positional_index": i_ROI,
-                "level": level,
-            }
-
         # Call segment_ROI through the masked-loading wrapper, which includes
         # pre/post-processing functions if needed
         new_label_img, instance_count = masked_loading_wrapper(
