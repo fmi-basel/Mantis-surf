@@ -333,6 +333,11 @@ def semantic_to_instance_segmentation(
             preprocessing_kwargs=preprocessing_kwargs,
         )
 
+        # return None if boundary region is empty and continue to next ROI
+        if new_label_img is None and instance_count is None:
+            logger.info(f"Empty boundary image in region {i_ROI}, skipping.")
+            continue
+
         logger.info(
             f"Identified {instance_count} instances for class {select_semantic_class} in region {i_ROI + 1}."
         )

@@ -251,7 +251,7 @@ def masked_loading_wrapper(
         unpack_result = False
 
     # Optional postprocessing
-    if use_masks:
+    if use_masks and new_label_img is not None:
         new_label_img = _postprocess_output(
             modified_array=new_label_img,
             original_array=current_label_region,

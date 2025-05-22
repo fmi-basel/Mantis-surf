@@ -150,7 +150,7 @@ def boundaries_to_gasp(
     gasp_beta: float,
     semantic_seg: np.ndarray | None = None,
     select_semantic_class: int | None = None,
-) -> np.ndarray:
+) -> np.ndarray | None:
     """Generate instance segmentation from boundary segmenation image using distance transform watershed and GASP.
     Input is the boundary segmentation (binary, 0 or 1), e.g. output from nnUnet boundary semantic segmentation.
     If a semantic class segmentation image (semantic_seg) is optionally provided, its boundaries are combined with the
@@ -174,6 +174,10 @@ def boundaries_to_gasp(
 
     # check that boundaries are binary (0 or 1).
     check_if_binary(boundaries)
+
+    # if boundary image is empty, return None and skip processing this region
+    if not np.any(boundaries):
+        return None
 
     # Blur boundaries to make probability-map-like image
     blurred_boundaries, anisotropic_sigma = anisotropic_gaussian_blur(
@@ -211,7 +215,7 @@ def run_semantic_to_instance_segmentation(
     watershed_min_size: int = 100,
     gasp_beta: float = 0.5,
     combine_boundary_and_semantic_edges: bool = True,
-) -> tuple[np.ndarray, int]:
+) -> tuple[np.ndarray, int] | tuple[None, None]:
     # masked loading with fractal tasks core requires channel dim, but subsequent processing steps fail; temp fix here.
     # add back channel dimension at end
     # clean up this mess with ngio
@@ -237,6 +241,10 @@ def run_semantic_to_instance_segmentation(
         semantic_seg=semantic_seg_for_gasp,
         select_semantic_class=select_semantic_class,
     )
+
+    if gasp_result is None:
+        return None, None
+
     label_mapping = assign_semantic_classes_to_gasp(gasp_result, semantic_seg)
 
     instance_seg, instance_count = relabel_by_class_instances(
