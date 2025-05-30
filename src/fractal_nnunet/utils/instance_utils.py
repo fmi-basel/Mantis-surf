@@ -176,7 +176,8 @@ def boundaries_to_gasp(
     check_if_binary(boundaries)
 
     # if boundary image is empty, return None and skip processing this region
-    if not np.any(boundaries):
+    # see errors in watershed if boundaries are very small (just a few pixels); require at least 100 pixels in image
+    if np.count_nonzero(boundaries) < 100:
         return None
 
     # Blur boundaries to make probability-map-like image
