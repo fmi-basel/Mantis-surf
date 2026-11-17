@@ -85,6 +85,22 @@
             "type": "boolean",
             "description": "Boolean, if True the input numpy array is log-transformed (natural log, e) before being passed to nnUnet for prediction."
           },
+          "rescale_image_prior_to_prediction": {
+            "default": false,
+            "title": "Rescale Image Prior To Prediction",
+            "type": "boolean",
+            "description": "Boolean, if True the input NumPy array is rescaled before being passed to nnUNet for prediction. Rescaling is performed before the log transform."
+          },
+          "rescale_min": {
+            "title": "Rescale Min",
+            "type": "integer",
+            "description": "Minimum intensity value in the input image. Values at or below this threshold are mapped to 0."
+          },
+          "rescale_max": {
+            "title": "Rescale Max",
+            "type": "integer",
+            "description": "Maximum intensity value in the input image. Values at or above this threshold are mapped to the maximum value of the image dtype. Intensities between rescale_min and rescale_max are linearly rescaled to the full dtype range."
+          },
           "use_masks": {
             "default": true,
             "title": "Use Masks",

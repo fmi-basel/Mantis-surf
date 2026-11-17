@@ -36,6 +36,7 @@ from fractal_nnunet.utils.prediction_utils import (
     init_predictor,
     log_transform_array,
     predict_nnunet,
+    rescale_array,
 )
 
 logger = logging.getLogger(__name__)
@@ -58,6 +59,9 @@ def nnunet_segmentation(
     model_path: str,
     folds: Optional[Sequence[int]] = None,
     log_transform_prior_to_prediction: bool = False,
+    rescale_image_prior_to_prediction: bool = False,
+    rescale_min: Optional[int] = None,
+    rescale_max: Optional[int] = None,
     use_masks: bool = True,
     overwrite: bool = True,
 ) -> None:
@@ -89,6 +93,15 @@ def nnunet_segmentation(
         log_transform_prior_to_prediction: Boolean, if True the input numpy array is
             log-transformed (natural log, e)
             before being passed to nnUnet for prediction.
+        rescale_image_prior_to_prediction: Boolean, if True the input NumPy array is
+            rescaled before being passed to nnUNet for prediction. Rescaling is performed
+            before the log transform.
+        rescale_min: Minimum intensity value in the input image. Values at or below
+            this threshold are mapped to 0.
+        rescale_max: Maximum intensity value in the input image. Values at or above
+            this threshold are mapped to the maximum value of the image dtype.
+            Intensities between rescale_min and rescale_max are linearly rescaled
+            to the full dtype range.
         use_masks: If `True`, try to use masked loading and fall back to
             `use_masks=False` if the ROI table is not suitable. Masked
             loading is relevant when only a subset of the bounding box should
@@ -100,6 +113,14 @@ def nnunet_segmentation(
     # Check that model exists
     if not os.path.exists(model_path):
         raise ValueError(f"{model_path=} does not exist.")
+
+    # Check inputs are valid
+    if rescale_image_prior_to_prediction:
+        if rescale_min is None or rescale_max is None:
+            raise ValueError(
+                "rescale_min and rescale_max must both be provided "
+                "when rescale_image_prior_to_prediction=True."
+            )
 
     # Read attributes from NGFF metadata
     ngff_image_meta = load_NgffImageMeta(zarr_url)
@@ -264,7 +285,7 @@ def nnunet_segmentation(
     predictor = init_predictor(model_path=model_path, use_folds=folds)
 
     # Initialize other things
-    logger.info(f"Start cellpose_segmentation task for {zarr_url}")
+    logger.info(f"Start nnunet_segmentation task for {zarr_url}")
     logger.info(f"do_3D: {do_3D}")
     logger.info(f"level: {level}")
     logger.info(f"model_path: {model_path}")
@@ -302,6 +323,12 @@ def nnunet_segmentation(
             load_region(data_zyx, region, compute=True, return_as_3D=True),
             axis=0,
         )
+
+        if rescale_image_prior_to_prediction:
+            img_np = rescale_array(
+                img_np,
+                intensity_range=(rescale_min, rescale_max),
+            )
 
         if log_transform_prior_to_prediction:
             img_np = log_transform_array(img_np)
@@ -352,7 +379,7 @@ def nnunet_segmentation(
         )
 
     logger.info(
-        f"End cellpose_segmentation task for {zarr_url}, " "now building pyramids."
+        f"End nnunet_segmentation task for {zarr_url}, " "now building pyramids."
     )
 
     # Starting from on-disk highest-resolution data, build and write to disk a
