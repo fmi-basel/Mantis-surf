@@ -35,6 +35,41 @@ def log_transform_array(
     return img_log
 
 
+def rescale_array(
+    img: np.ndarray,
+    intensity_range: tuple[int, int],
+) -> np.ndarray:
+    """
+    Rescale an image to the full dtype range.
+
+    Intensities below the specified minimum are set to 0, and intensities
+    above the specified maximum are set to the maximum value of the dtype.
+    Return same dtype as input array.
+
+    Args:
+        img: NumPy array.
+        intensity_range: (min, max) intensity values to rescale.
+
+    Returns:
+        Rescaled NumPy array with the same dtype as input.
+    """
+    dtype = img.dtype
+    dtype_max = np.iinfo(dtype).max
+
+    min_val, max_val = intensity_range
+    if max_val <= min_val:
+        raise ValueError("intensity_range max must be greater than min.")
+
+    # Clip intensities to specified range
+    img_rescaled = np.clip(img, min_val, max_val).astype(np.float64)
+
+    # Rescale to full dtype range
+    img_rescaled = dtype_max * (img_rescaled - min_val) / (max_val - min_val)
+    img_rescaled = img_rescaled.astype(dtype)
+
+    return img_rescaled
+
+
 def transpose_3dimage_for_nnunet(
     img: np.ndarray,
     img_dtype: np.dtype | None = None,

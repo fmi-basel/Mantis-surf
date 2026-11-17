@@ -8,10 +8,12 @@
         "Semantic Segmentation"
       ],
       "docs_info": "### Purpose\n- Run 3D nnUnet V2 semantic segmentation on channel images given a user-trained model.\n\n### Outputs\n- Semantic segmentation label image and corresponding ROI table.\n\n### Limitations\n- Currently only supports 3D segmentation, not 2D.\n- Follows Cellpose task structure and dependent on fractal tasks core masking.\n",
+      "type": "parallel",
       "executable_parallel": "nnunet_segmentation.py",
       "meta_parallel": {
         "cpus_per_task": 1,
-        "mem": 8000
+        "mem": 8000,
+        "needs_gpu": true
       },
       "args_schema_parallel": {
         "$defs": {
@@ -83,6 +85,22 @@
             "type": "boolean",
             "description": "Boolean, if True the input numpy array is log-transformed (natural log, e) before being passed to nnUnet for prediction."
           },
+          "rescale_image_prior_to_prediction": {
+            "default": false,
+            "title": "Rescale Image Prior To Prediction",
+            "type": "boolean",
+            "description": "Boolean, if True the input NumPy array is rescaled before being passed to nnUNet for prediction. Rescaling is performed before the log transform."
+          },
+          "rescale_min": {
+            "title": "Rescale Min",
+            "type": "integer",
+            "description": "Minimum intensity value in the input image. Values at or below this threshold are mapped to 0."
+          },
+          "rescale_max": {
+            "title": "Rescale Max",
+            "type": "integer",
+            "description": "Maximum intensity value in the input image. Values at or above this threshold are mapped to the maximum value of the image dtype. Intensities between rescale_min and rescale_max are linearly rescaled to the full dtype range."
+          },
           "use_masks": {
             "default": true,
             "title": "Use Masks",
@@ -113,10 +131,12 @@
         "Instance Segmentation"
       ],
       "docs_info": "### Purpose\n- Convert semantic segmentation output of nnUnet to instance segmentation.\n- Select which semantic class is converted to numerically increasing instance labels.\n- Based on distance watershed and GASP algorithms similar to PlantSeg implementation.\n\n### Outputs\n- Instance segmentation label image (numerically increasing order starting from 1) and corresponding ROI table.\n\n### Limitations\n- Currently only supports 3D segmentation, not 2D.\n- Follows Cellpose task structure and dependent on fractal tasks core masking.\n",
+      "type": "parallel",
       "executable_parallel": "semantic_to_instance_segmentation.py",
       "meta_parallel": {
         "cpus_per_task": 1,
-        "mem": 8000
+        "mem": 8000,
+        "needs_gpu": true
       },
       "args_schema_parallel": {
         "additionalProperties": false,
