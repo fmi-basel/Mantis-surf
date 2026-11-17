@@ -1,4 +1,4 @@
-# fractal-nnunet
+# mantis-surf
 
 Semantic segmentation with nnUnet.
 

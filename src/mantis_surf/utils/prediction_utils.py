@@ -12,7 +12,7 @@ import numpy as np
 import torch
 from nnunetv2.inference.predict_from_raw_data import nnUNetPredictor
 
-from fractal_nnunet.utils.logging_utils import redirect_print_to_logger
+from mantis_surf.utils.logging_utils import redirect_print_to_logger
 
 logger = logging.getLogger(__name__)
 
