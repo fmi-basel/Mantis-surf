@@ -282,6 +282,13 @@ def nnunet_segmentation(
     logger.info(f"Now starting loop over {num_ROIs} ROIs")
 
     for i_ROI, indices in enumerate(list_indices):
+
+        # Get ROI label
+        if "label" in ROI_table.obs.columns:
+            roi_label = ROI_table.obs["label"].iloc[i_ROI]
+        else:
+            roi_label = ROI_table.obs_names[i_ROI]
+
         # Define region
         s_z, e_z, s_y, e_y, s_x, e_x = indices[:]
         region = (
@@ -289,7 +296,7 @@ def nnunet_segmentation(
             slice(s_y, e_y),
             slice(s_x, e_x),
         )
-        logger.info(f"Now processing ROI {i_ROI+1}/{num_ROIs}")
+        logger.info(f"Now processing ROI {i_ROI+1}/{num_ROIs}, label: {roi_label}")
 
         img_np = np.expand_dims(
             load_region(data_zyx, region, compute=True, return_as_3D=True),

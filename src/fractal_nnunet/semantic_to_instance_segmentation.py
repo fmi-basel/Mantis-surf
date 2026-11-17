@@ -273,13 +273,20 @@ def semantic_to_instance_segmentation(
     # ROI loaded based on masking ROI table
     for i_ROI, indices in enumerate(list_indices):
         # Define region
+
+        # Get ROI label
+        if "label" in ROI_table.obs.columns:
+            roi_label = ROI_table.obs["label"].iloc[i_ROI]
+        else:
+            roi_label = ROI_table.obs_names[i_ROI]
+
         s_z, e_z, s_y, e_y, s_x, e_x = indices[:]
         region = (
             slice(s_z, e_z),
             slice(s_y, e_y),
             slice(s_x, e_x),
         )
-        logger.info(f"Now processing ROI {i_ROI + 1}/{num_ROIs}")
+        logger.info(f"Now processing ROI {i_ROI + 1}/{num_ROIs}, label: {roi_label}")
 
         semantic_img_np = np.expand_dims(
             load_region(semantic_data_zyx, region, compute=True, return_as_3D=True),
