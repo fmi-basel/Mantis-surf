@@ -17,9 +17,14 @@ jobs:
       matrix:
         os: [ubuntu-22.04, macos-latest]
         python-version: ["3.11"]
+
     name: "Core, Python ${{ matrix.python-version }}, ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 20
+
+    defaults:
+      run:
+        shell: bash -el {0}
 
     steps:
       - uses: actions/checkout@v4
@@ -27,11 +32,22 @@ jobs:
           fetch-depth: 1
           persist-credentials: false
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Set up Miniconda
+        uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip"
+          activate-environment: fractal-nnunet
+          auto-activate-base: false
+          channels: conda-forge,defaults
+
+      - name: Install python-elf
+        run: conda install -y -c conda-forge python-elf
+
+      - name: Install PyTorch
+        run: python -m pip install torch torchvision
+
+      - name: Install nnUNet
+        run: python -m pip install nnunetv2
 
       - name: Install package
         run: python -m pip install -e ".[dev]"
@@ -49,9 +65,9 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      # IMPORTANT: this permission is mandatory for trusted publishing on PyPI
+      # Required for trusted publishing on PyPI
       id-token: write
-      # This permission allows writing releases
+      # Required for creating GitHub releases
       contents: write
 
     steps:
@@ -60,22 +76,23 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: 🐍 Set up Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.x"
+          python-version: "3.11"
 
-      - name: 👷 Build
+      - name: Build
         run: |
           python -m pip install build
           python -m build
 
-      - name: 🚢 Publish to PyPI
-        # TODO remove "if: false" when ready for PyPI release
+      - name: Publish to PyPI
+        # Remove "if: false" when ready for PyPI release
         if: false
         uses: pypa/gh-action-pypi-publish@release/v1
 
-      - uses: softprops/action-gh-release@v2
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           files: './dist/*'
