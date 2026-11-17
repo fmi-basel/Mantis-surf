@@ -11,8 +11,8 @@ import numpy as np
 from skimage.filters import gaussian
 from skimage.segmentation import find_boundaries
 
-from fractal_nnunet.utils.fractal_utils import remove_channel_dimension
-from fractal_nnunet.utils.plantseg_utils import dt_watershed, gasp
+from mantis_surf.utils.fractal_utils import remove_channel_dimension
+from mantis_surf.utils.plantseg_utils import dt_watershed, gasp
 
 logger = logging.getLogger(__name__)
 

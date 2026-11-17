@@ -1,10 +1,10 @@
 import json
 from pathlib import Path
 
-import fractal_nnunet
+import mantis_surf
 
-PACKAGE = "fractal_nnunet"
-PACKAGE_DIR = Path(fractal_nnunet.__file__).parent
+PACKAGE = "mantis_surf"
+PACKAGE_DIR = Path(mantis_surf.__file__).parent
 MANIFEST_FILE = PACKAGE_DIR / "__FRACTAL_MANIFEST__.json"
 with MANIFEST_FILE.open("r") as f:
     MANIFEST = json.load(f)

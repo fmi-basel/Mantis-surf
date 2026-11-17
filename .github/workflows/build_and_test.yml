@@ -36,7 +36,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           python-version: ${{ matrix.python-version }}
-          activate-environment: fractal-nnunet
+          activate-environment: mantis-surf
           auto-activate-base: false
           channels: conda-forge,defaults
 
@@ -53,7 +53,7 @@ jobs:
         run: python -m pip install -e ".[dev]"
 
       - name: Check if manifest has changed
-        run: fractal-manifest check --package fractal_nnunet
+        run: fractal-manifest check --package mantis_surf
 
       - name: Test core library with pytest
         run: python -m pytest tests
