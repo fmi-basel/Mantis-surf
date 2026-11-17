@@ -10,7 +10,7 @@ TASK_LIST = [
     ParallelTask(
         name="nnUnet Segmentation",
         executable="nnunet_segmentation.py",
-        meta={"cpus_per_task": 1, "mem": 8000},
+        meta={"cpus_per_task": 1, "mem": 8000, "needs_gpu": True},
         category="Segmentation",
         tags=[
             "Semantic Segmentation",
@@ -20,7 +20,7 @@ TASK_LIST = [
     ParallelTask(
         name="nnUnet Semantic to Instance Segmentation ",
         executable="semantic_to_instance_segmentation.py",
-        meta={"cpus_per_task": 1, "mem": 8000},
+        meta={"cpus_per_task": 1, "mem": 8000, "needs_gpu": True},
         category="Segmentation",
         tags=[
             "Instance Segmentation",

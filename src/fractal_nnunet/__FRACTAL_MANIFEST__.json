@@ -8,10 +8,12 @@
         "Semantic Segmentation"
       ],
       "docs_info": "### Purpose\n- Run 3D nnUnet V2 semantic segmentation on channel images given a user-trained model.\n\n### Outputs\n- Semantic segmentation label image and corresponding ROI table.\n\n### Limitations\n- Currently only supports 3D segmentation, not 2D.\n- Follows Cellpose task structure and dependent on fractal tasks core masking.\n",
+      "type": "parallel",
       "executable_parallel": "nnunet_segmentation.py",
       "meta_parallel": {
         "cpus_per_task": 1,
-        "mem": 8000
+        "mem": 8000,
+        "needs_gpu": true
       },
       "args_schema_parallel": {
         "$defs": {
@@ -113,10 +115,12 @@
         "Instance Segmentation"
       ],
       "docs_info": "### Purpose\n- Convert semantic segmentation output of nnUnet to instance segmentation.\n- Select which semantic class is converted to numerically increasing instance labels.\n- Based on distance watershed and GASP algorithms similar to PlantSeg implementation.\n\n### Outputs\n- Instance segmentation label image (numerically increasing order starting from 1) and corresponding ROI table.\n\n### Limitations\n- Currently only supports 3D segmentation, not 2D.\n- Follows Cellpose task structure and dependent on fractal tasks core masking.\n",
+      "type": "parallel",
       "executable_parallel": "semantic_to_instance_segmentation.py",
       "meta_parallel": {
         "cpus_per_task": 1,
-        "mem": 8000
+        "mem": 8000,
+        "needs_gpu": true
       },
       "args_schema_parallel": {
         "additionalProperties": false,
