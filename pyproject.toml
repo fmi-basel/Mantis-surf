@@ -12,6 +12,13 @@ source = "vcs"
 [tool.hatch.build.targets.wheel]
 packages = ["src/mantis_surf"]
 
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "/tests/data",
+]
+
+[tool.hatch.build.targets.sdist.force-include]
+"pixi.lock" = "pixi.lock"
 
 # Project metadata (see https://peps.python.org/pep-0621)
 [project]
@@ -32,3 +39,34 @@ dependencies = ["fractal-task-tools", "fractal-tasks-core==1.3.4"]
 # https://peps.python.org/pep-0621/#dependencies-optional-dependencies)
 [project.optional-dependencies]
 dev = ["devtools", "hatch", "pytest", "requests", "jsonschema", "ruff", "pre-commit"]
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "linux-64"]
+
+[tool.pixi.dependencies]
+python = "3.11.*"
+python-elf = "*"
+zarr = ">=2.13.6,<3"
+numpy = "<=2.1.0"
+
+[tool.pixi.pypi-dependencies]
+mantis-surf = { path = ".", editable = true }
+torch = "*"
+torchvision = "*"
+nnunetv2 = "*"
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+dev = { features = ["dev"], solve-group = "default" }
+
+[tool.pixi.feature.dev.tasks]
+test = { cmd = ["pytest", "./tests/"] }
+
+[tool.pixi.tasks]
+create-manifest = { cmd = [
+    "fractal-manifest",
+    "create",
+    "--package",
+    "mantis_surf",
+] }

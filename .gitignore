@@ -113,3 +113,6 @@ ENV/
 
 # Local development scripts
 scripts/run.py
+
+# Pixi environments
+.pixi/

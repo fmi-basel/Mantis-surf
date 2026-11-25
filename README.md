@@ -26,13 +26,44 @@ The `semantic_to_instance_segmentation` task converts nnU-Net semantic segmentat
 
 - **Input:** Two 3D label images (ZYX) containing semantic class and boundary segmentations, together with an ROI table defining the regions to process.
 - **Output:** Instance segmentation label image with unique object IDs written to the OME-Zarr image, with an optional corresponding ROI table containing bounding boxes of segmented objects.
-  
+
+
 
 ## Installation
 
-Mantis-surf requires Python 3.11 or newer. The nnU-Net and PyTorch dependencies may require separate installation depending on the computational environment.
+Mantis-surf requires Python 3.11 or newer.
 
-A Conda-based installation workflow is:
+### Installation with Pixi (recommended)
+
+[Pixi](https://pixi.sh/) manages both Conda and PyPI dependencies in a single environment. Mantis-surf provides a `pixi.lock` file for reproducible installation on Linux (x86-64) and macOS (ARM64).
+
+After installing Pixi, clone the repository and install the default environment:
+
+```bash
+git clone https://github.com/fmi-basel/Mantis-surf.git
+cd Mantis-surf
+pixi install --locked
+```
+
+For development and testing, install the development environment:
+
+```bash
+pixi install --locked -e dev
+```
+
+To run the tests:
+
+```bash
+pixi run -e dev test
+```
+
+The default environment contains all runtime dependencies required for deployment on a Fractal server.
+
+### Installation with Conda and pip
+
+Alternatively, Mantis-surf can be installed using Conda and pip. The nnU-Net and PyTorch dependencies may require separate installation depending on the computational environment.
+
+From the repository root, run:
 
 ```bash
 conda create -n mantis-surf python=3.11
@@ -43,6 +74,10 @@ pip install torch torchvision
 pip install nnunetv2
 pip install -e ".[dev]"
 ```
+
+### GPU support
+
+The current Linux Pixi environment uses PyTorch with CUDA 13.2.
 
 ## License
 
